@@ -1,0 +1,20 @@
+services:
+  app:
+    environment:
+      MONGO_USERNAME: root
+      MONGO_PASSWORD: root
+      MONGO_HOST: database:27017
+      IP_STACK_ACCESS_KEY: f556b879ebd8b1da1b334dd404ca21d3
+    depends_on:
+      - database
+    ports:
+      - 8000:8000
+    build: .
+
+  database:
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - 27017:27017
