@@ -7,11 +7,26 @@ import json
 import requests
 
 from app.app import app, collection
+from app.authentication import generate_access_token, verify_access_token
 from tests.fixtures.geolocation_fixtures import *
 from tests.fixtures.ip_stack_api_fixtures import *
 
 
 client = TestClient(app)
+
+
+class TestAuthentication:
+  def test_generate_access_token(self):
+    response = client.get("/access_token")
+    assert response.status_code == status.HTTP_200_OK
+
+    # Shouldn't raise exception
+    verify_access_token(response.json()["access-token"])
+
+
+# Set authentication token for all requests
+access_token = generate_access_token()
+client.headers = { "access-token": access_token }
 
 
 class TestGetGeolocation:

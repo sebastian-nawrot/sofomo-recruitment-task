@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 from pymongo.errors import PyMongoError
 from starlette import status
@@ -6,7 +6,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 import logging
 
-
+from app.authentication import generate_access_token, verify_access_token
 from app.database import client
 from app.ip_stack_api import fetch_geolocation
 from app.models import GeolocationBase, Geolocation
@@ -14,8 +14,8 @@ from app.models import GeolocationBase, Geolocation
 
 logging.basicConfig(
   level=logging.INFO, 
-  format= '[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
-  datefmt='%H:%M:%S'
+  format= "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s",
+  datefmt="%H:%M:%S"
 )
 
 
@@ -41,8 +41,15 @@ async def database_exception_handler(request: Request, exception: PyMongoError):
   )
 
 
+# Authentication, returns token in response data
+@app.get("/access_token")
+def access_token_get():
+  return { "access-token": generate_access_token() }
+
+
+# Geolocation
 @app.get("/geolocation/{address}")
-def geolocation_get(address: str):
+def geolocation_get(address: str, auth: None = Depends(verify_access_token)):
   """ Returns geolocation data stored in our Mongo database
 
   HTTP response status codes:
@@ -58,7 +65,7 @@ def geolocation_get(address: str):
 
 
 @app.delete("/geolocation/{address}")
-def geolocation_delete(address: str):
+def geolocation_delete(address: str, auth: None = Depends(verify_access_token)):
   """ Deletes geolocation data stored in database
 
   HTTP response status codes:
@@ -74,7 +81,7 @@ def geolocation_delete(address: str):
 
 
 @app.post("/geolocation", response_model=Geolocation)
-def geolocation_post(base: GeolocationBase):
+def geolocation_post(base: GeolocationBase, auth: None = Depends(verify_access_token)):
   """ Creates new geolocation based on address passed in payload, it utilizes
   ipstack.com API.
 
