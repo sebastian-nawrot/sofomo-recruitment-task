@@ -12,7 +12,7 @@ docker compose run --rm --entrypoint "python -m pytest" app
 
 To generate access token:
 ```
-curl --location --request GET 'http://localhost:8000/access_token'
+curl --location --request GET 'https://sofomo-recruitment-task.herokuapp.com/access_token'
 ```
 
 To add new geolocation to service:
